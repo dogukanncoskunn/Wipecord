@@ -38,6 +38,28 @@ STRINGS: dict[str, dict[str, str]] = {
         "btn.verify": "Verify",
         "btn.show": "Show",
         "btn.hide": "Hide",
+        "help.token.link": "How do I get my token?",
+        "help.token.title": "Getting your Discord token",
+        "help.token.body": (
+            "Your token has to be read from Discord in the browser — the desktop "
+            "app will not show it. It takes about a minute:\n\n"
+            "1.  Open discord.com/app in your browser and log in.\n"
+            "2.  Press F12 to open Developer Tools, then click the \"Network\" tab.\n"
+            "3.  In the filter box, type:  /api\n"
+            "4.  Click a channel, or send or open a message, so requests appear in "
+            "the list.\n"
+            "5.  Click any request to \"discord.com/api/…\". In the panel that opens, "
+            "find \"Headers\" → \"Request Headers\".\n"
+            "6.  Locate the line that starts with  authorization:  — the value after "
+            "it is your token. Copy that value and paste it above."
+        ),
+        "help.token.warning": (
+            "⚠  This value is full access to your account. Never paste it into a "
+            "website, and never run a script someone tells you to paste into the "
+            "console — that is how tokens get stolen. Wipecord keeps it in memory "
+            "only and sends it nowhere except discord.com."
+        ),
+        "help.close": "Got it",
         "status.verifying": "Verifying…",
         "status.verified": "Signed in as {name}",
         "status.verify_failed": "Could not verify: {error}",
@@ -139,6 +161,29 @@ STRINGS: dict[str, dict[str, str]] = {
         "btn.verify": "Doğrula",
         "btn.show": "Göster",
         "btn.hide": "Gizle",
+        "help.token.link": "Token'ımı nasıl alırım?",
+        "help.token.title": "Discord token'ınızı alma",
+        "help.token.body": (
+            "Token'ınız Discord'dan, tarayıcıda okunur — masaüstü uygulaması onu "
+            "göstermez. Yaklaşık bir dakika sürer:\n\n"
+            "1.  Tarayıcınızda discord.com/app adresini açıp giriş yapın.\n"
+            "2.  F12'ye basarak Geliştirici Araçları'nı açın, sonra \"Network\" (Ağ) "
+            "sekmesine tıklayın.\n"
+            "3.  Filtre kutusuna şunu yazın:  /api\n"
+            "4.  Bir kanala tıklayın ya da bir mesaj gönderin/açın; böylece listede "
+            "istekler görünür.\n"
+            "5.  \"discord.com/api/…\" isteklerinden birine tıklayın. Açılan panelde "
+            "\"Headers\" → \"Request Headers\"ı bulun.\n"
+            "6.  authorization:  ile başlayan satırı bulun — sonrasındaki değer sizin "
+            "token'ınızdır. O değeri kopyalayıp yukarıya yapıştırın."
+        ),
+        "help.token.warning": (
+            "⚠  Bu değer hesabınızın tam erişimidir. Onu asla bir siteye "
+            "yapıştırmayın ve kimsenin \"konsola yapıştır\" dediği bir script'i "
+            "çalıştırmayın — token'lar tam böyle çalınır. Wipecord onu yalnızca "
+            "bellekte tutar ve discord.com dışında hiçbir yere göndermez."
+        ),
+        "help.close": "Anladım",
         "status.verifying": "Doğrulanıyor…",
         "status.verified": "Giriş yapıldı: {name}",
         "status.verify_failed": "Doğrulanamadı: {error}",

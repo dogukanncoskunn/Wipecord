@@ -40,12 +40,15 @@ from .widgets import (
     DisclaimerDialog,
     LogConsole,
     SecretEntry,
+    TokenHelpDialog,
     button,
     entry,
     field_label,
     hint_label,
     section_label,
 )
+
+ICON_PATH = Path(__file__).resolve().parent.parent.parent / "assets" / "wipecord.ico"
 
 MODES = (Mode.ALL, Mode.LAST_N, Mode.DATE_RANGE)
 MODE_KEYS = {Mode.ALL: "mode.all", Mode.LAST_N: "mode.last_n", Mode.DATE_RANGE: "mode.date_range"}
@@ -72,6 +75,11 @@ class WipecordApp(ctk.CTk):
         self.geometry("1120x740")
         self.minsize(940, 620)
         self.configure(fg_color=theme.BG_MAIN)
+        try:
+            if ICON_PATH.exists():
+                self.iconbitmap(str(ICON_PATH))
+        except Exception:  # pragma: no cover - platform/display dependent
+            pass
 
         self.events: queue.Queue = queue.Queue()
         self.engine = DeletionEngine(self.events)
@@ -191,7 +199,21 @@ class WipecordApp(ctk.CTk):
         self._token = SecretEntry(
             parent, t("label.token.placeholder"), on_change=self._invalidate_preview
         )
-        self._token.grid(row=row, column=0, pady=(0, 6), **pad)
+        self._token.grid(row=row, column=0, pady=(0, 4), **pad)
+        row += 1
+        self._token_help = ctk.CTkButton(
+            parent,
+            text=t("help.token.link"),
+            command=self._show_token_help,
+            fg_color="transparent",
+            hover_color=theme.BG_CARD,
+            text_color=theme.TEXT_LINK,
+            font=(theme.FONT_FAMILY, 11, "underline"),
+            height=22,
+            anchor="w",
+        )
+        self._tr(self._token_help, "help.token.link")
+        self._token_help.grid(row=row, column=0, pady=(0, 6), padx=18, sticky="w")
         row += 1
         self._verify_button = self._tr(
             button(parent, t("btn.verify"), self._verify_token), "btn.verify"
@@ -517,6 +539,9 @@ class WipecordApp(ctk.CTk):
         self.redactor.add(token)
         limiter = RateLimiter(sleeper=Sleeper(threading.Event()))
         return DiscordClient(token, limiter, redactor=self.redactor)
+
+    def _show_token_help(self) -> None:
+        TokenHelpDialog.show(self)
 
     def _verify_token(self) -> None:
         token = self._token.get()

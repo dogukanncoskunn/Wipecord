@@ -267,6 +267,72 @@ class ConfirmDialog(ctk.CTkToplevel):
         return dialog.result
 
 
+class TokenHelpDialog(ctk.CTkToplevel):
+    """Informational: how to read your user token from the browser.
+
+    Opened from a link next to the token field, so the instructions are one
+    click from where they are needed rather than buried in the README.
+    """
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.title(t("help.token.title"))
+        self.configure(fg_color=theme.BG_MAIN)
+        self.resizable(False, False)
+
+        self.grid_columnconfigure(0, weight=1)
+        pad = {"padx": 24, "sticky": "ew"}
+
+        ctk.CTkLabel(
+            self,
+            text=t("help.token.title"),
+            font=(theme.FONT_FAMILY, 16, "bold"),
+            text_color=theme.TEXT_HEADING,
+            anchor="w",
+        ).grid(row=0, column=0, pady=(22, 10), **pad)
+
+        ctk.CTkLabel(
+            self,
+            text=t("help.token.body"),
+            font=(theme.FONT_FAMILY, 12),
+            text_color=theme.TEXT,
+            anchor="w",
+            justify="left",
+            wraplength=520,
+        ).grid(row=1, column=0, pady=(0, 14), **pad)
+
+        warning = ctk.CTkFrame(self, fg_color=theme.BG_DARKEST, corner_radius=6)
+        warning.grid(row=2, column=0, pady=(0, 16), **pad)
+        warning.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(
+            warning,
+            text=t("help.token.warning"),
+            font=(theme.FONT_FAMILY, 12),
+            text_color=theme.WARNING,
+            anchor="w",
+            justify="left",
+            wraplength=490,
+        ).grid(row=0, column=0, padx=14, pady=12, sticky="ew")
+
+        buttons = ctk.CTkFrame(self, fg_color="transparent")
+        buttons.grid(row=3, column=0, padx=24, pady=(0, 22), sticky="e")
+        button(buttons, t("help.close"), self._close, kind="primary", width=130).grid(row=0, column=0)
+
+        self.update_idletasks()
+        self.transient(master)
+        self.grab_set()
+        self.protocol("WM_DELETE_WINDOW", self._close)
+
+    def _close(self) -> None:
+        self.grab_release()
+        self.destroy()
+
+    @classmethod
+    def show(cls, master) -> None:
+        dialog = cls(master)
+        master.wait_window(dialog)
+
+
 class DisclaimerDialog(ctk.CTkToplevel):
     """First-run notice. The checkbox has to be ticked before Continue works."""
 

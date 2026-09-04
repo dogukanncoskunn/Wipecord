@@ -48,9 +48,19 @@ pip install -r requirements.txt
 python -m wipecord
 ```
 
+### A desktop shortcut (Windows)
+
+To launch it by double-clicking an icon instead of a terminal:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-shortcut.ps1
+```
+
+This puts a **Wipecord** icon on your Desktop that opens the app with no console window. Add `-StartMenu` to also place it in the Start Menu. The shortcut just points at the local install — there is no separate copy of the code, and nothing is installed system-wide.
+
 ## Using it
 
-1. **Token** — paste it, press *Verify*. The field is masked; the token is held in memory only.
+1. **Token** — paste it, press *Verify*. The field is masked; the token is held in memory only. Don't know where to find it? The **How do I get my token?** link right under the field walks you through reading it from your browser.
 2. **Channel or DM ID** — in Discord, enable *Settings → Advanced → Developer Mode*, then right-click the channel or DM and choose *Copy Channel ID*. Press *Look up* to confirm you have the right conversation before anything happens.
 3. **Mode** — everything, last N, or a date range (dates are inclusive, in your local time).
 4. **Find (preview)** — see exactly what would be deleted. Nothing is changed.
@@ -154,9 +164,19 @@ pip install -r requirements.txt
 python -m wipecord
 ```
 
+### Masaüstü kısayolu (Windows)
+
+Terminal yerine bir ikona çift tıklayarak açmak için:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-shortcut.ps1
+```
+
+Bu, masaüstüne konsol penceresi açmadan uygulamayı başlatan bir **Wipecord** ikonu koyar. Başlat menüsüne de eklemek için `-StartMenu` ekleyin. Kısayol yalnızca yerel kuruluma işaret eder — kodun ayrı bir kopyası oluşmaz, sisteme hiçbir şey kurulmaz.
+
 ## Kullanım
 
-1. **Token** — yapıştırın, *Doğrula*'ya basın. Alan maskelidir; token sadece bellekte tutulur.
+1. **Token** — yapıştırın, *Doğrula*'ya basın. Alan maskelidir; token sadece bellekte tutulur. Nerede bulacağınızı bilmiyorsanız, alanın hemen altındaki **Token'ımı nasıl alırım?** bağlantısı onu tarayıcınızdan okumayı adım adım anlatır.
 2. **Kanal veya DM ID** — Discord'da *Ayarlar → Gelişmiş → Geliştirici Modu*'nu açın, kanala veya DM'e sağ tıklayıp *Kanal Kimliğini Kopyala* deyin. *Getir*'e basarak doğru sohbette olduğunuzu daha hiçbir şey olmadan doğrulayın.
 3. **Mod** — tümü, son N, veya tarih aralığı (tarihler yerel saatinizle ve iki uç da dahildir).
 4. **Bul (önizleme)** — tam olarak neyin silineceğini görün. Hiçbir şey değişmez.

@@ -388,3 +388,28 @@ def test_callbacks_posted_from_worker_threads_run_on_the_ui_thread(app):
 def test_the_pump_survives_an_unknown_event(app):
     app.events.put(object())
     app._drain()  # must not raise
+
+
+# --- token help --------------------------------------------------------------
+
+
+def test_a_token_help_link_sits_next_to_the_token_field(app):
+    assert app._token_help is not None
+    assert app._token_help.cget("text") == t("help.token.link")
+
+
+def test_the_token_help_dialog_builds_and_closes(app):
+    from wipecord.ui.widgets import TokenHelpDialog
+
+    dialog = TokenHelpDialog(app)
+    app.update_idletasks()
+    try:
+        assert dialog.winfo_exists()
+    finally:
+        dialog._close()
+    assert not dialog.winfo_exists()
+
+
+def test_the_help_link_retranslates_with_the_interface(app):
+    app._on_language("Türkçe")
+    assert app._token_help.cget("text") == t("help.token.link")
