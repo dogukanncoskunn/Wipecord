@@ -10,28 +10,24 @@ from ..i18n import t
 from . import theme
 
 
-def bring_to_front(win, *, ms: int = 300) -> None:
+def bring_to_front(win) -> None:
     """Force a window to the foreground on Windows.
 
     Launched from a shortcut, a new Tk window often opens *behind* whatever had
-    focus, because Windows blocks foreground stealing. A brief topmost flash is
-    the reliable way to pull it in front; it is dropped again after `ms` so the
-    window behaves normally afterwards.
+    focus, because Windows blocks foreground stealing. Toggling the topmost
+    attribute on and straight back off bumps the window to the top of the normal
+    z-order without leaving it permanently on top, and without depending on a
+    timed callback that can fire before the window is mapped.
     """
     try:
+        win.deiconify()
         win.lift()
+        win.update_idletasks()
         win.attributes("-topmost", True)
-        win.after(ms, lambda: _drop_topmost(win))
+        win.update_idletasks()
+        win.attributes("-topmost", False)
         win.focus_force()
     except Exception:  # pragma: no cover - platform/display dependent
-        pass
-
-
-def _drop_topmost(win) -> None:
-    try:
-        if win.winfo_exists():
-            win.attributes("-topmost", False)
-    except Exception:  # pragma: no cover
         pass
 
 
@@ -392,7 +388,7 @@ class DisclaimerDialog(ctk.CTkToplevel):
         ).grid(row=1, column=0, pady=(0, 16), **pad)
 
         self._accepted = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(
+        self._checkbox = ctk.CTkCheckBox(
             self,
             text=t("tos.accept"),
             variable=self._accepted,
@@ -402,7 +398,8 @@ class DisclaimerDialog(ctk.CTkToplevel):
             fg_color=theme.BLURPLE,
             hover_color=theme.BLURPLE_HOVER,
             border_color=theme.BORDER,
-        ).grid(row=2, column=0, pady=(0, 18), **pad)
+        )
+        self._checkbox.grid(row=2, column=0, pady=(0, 18), **pad)
 
         buttons = ctk.CTkFrame(self, fg_color="transparent")
         buttons.grid(row=3, column=0, padx=24, pady=(0, 22), sticky="e")
@@ -416,12 +413,27 @@ class DisclaimerDialog(ctk.CTkToplevel):
         self.transient(master)
         self.grab_set()
         bring_to_front(self)
+        # Keyboard path: focus the checkbox so Space ticks it, and let Enter
+        # confirm once ticked. Space/Enter is also how keyboard-only users get
+        # through, not just a hook for automated testing.
+        self.after(120, self._focus_checkbox)
+        self.bind("<Return>", lambda _e: self._accept())
         self.protocol("WM_DELETE_WINDOW", self._decline)
+
+    def _focus_checkbox(self) -> None:
+        try:
+            if self.winfo_exists():
+                self._checkbox.focus_set()
+        except Exception:  # pragma: no cover
+            pass
 
     def _sync(self) -> None:
         self._continue.configure(state="normal" if self._accepted.get() else "disabled")
 
     def _accept(self) -> None:
+        # Guard: Enter must not confirm an unticked notice.
+        if not self._accepted.get():
+            return
         self.result = True
         self.grab_release()
         self.destroy()

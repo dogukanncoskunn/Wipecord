@@ -857,13 +857,15 @@ class WipecordApp(ctk.CTk):
 def launch() -> None:
     ctk.set_appearance_mode("dark")
     app = WipecordApp()
-    app.withdraw()
     app.update_idletasks()
+    # The main window is shown immediately, not withdrawn. A window that starts
+    # hidden and is deiconified later is exactly the case Windows blocks from
+    # taking the foreground, which made the app "disappear" after the notice.
+    # A freshly launched, already-visible window is allowed to the front; the
+    # disclaimer then sits on top of it as a modal.
+    bring_to_front(app)
     if not DisclaimerDialog.ask(app):
         app.destroy()
         return
-    app.deiconify()
-    # Launched from a shortcut the main window otherwise opens behind whatever
-    # had focus, which reads as "Continue did nothing". Pull it to the front.
     bring_to_front(app)
     app.mainloop()
