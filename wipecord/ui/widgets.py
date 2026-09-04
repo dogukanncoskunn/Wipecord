@@ -10,6 +10,31 @@ from ..i18n import t
 from . import theme
 
 
+def bring_to_front(win, *, ms: int = 300) -> None:
+    """Force a window to the foreground on Windows.
+
+    Launched from a shortcut, a new Tk window often opens *behind* whatever had
+    focus, because Windows blocks foreground stealing. A brief topmost flash is
+    the reliable way to pull it in front; it is dropped again after `ms` so the
+    window behaves normally afterwards.
+    """
+    try:
+        win.lift()
+        win.attributes("-topmost", True)
+        win.after(ms, lambda: _drop_topmost(win))
+        win.focus_force()
+    except Exception:  # pragma: no cover - platform/display dependent
+        pass
+
+
+def _drop_topmost(win) -> None:
+    try:
+        if win.winfo_exists():
+            win.attributes("-topmost", False)
+    except Exception:  # pragma: no cover
+        pass
+
+
 def section_label(master, key: str) -> ctk.CTkLabel:
     return ctk.CTkLabel(
         master,
@@ -235,6 +260,7 @@ class ConfirmDialog(ctk.CTkToplevel):
         self._centre_on(master)
         self.transient(master)
         self.grab_set()
+        bring_to_front(self)
         if self._input is not None:
             self._input.focus_set()
         self.protocol("WM_DELETE_WINDOW", self._cancel)
@@ -321,6 +347,7 @@ class TokenHelpDialog(ctk.CTkToplevel):
         self.update_idletasks()
         self.transient(master)
         self.grab_set()
+        bring_to_front(self)
         self.protocol("WM_DELETE_WINDOW", self._close)
 
     def _close(self) -> None:
@@ -388,6 +415,7 @@ class DisclaimerDialog(ctk.CTkToplevel):
         self.update_idletasks()
         self.transient(master)
         self.grab_set()
+        bring_to_front(self)
         self.protocol("WM_DELETE_WINDOW", self._decline)
 
     def _sync(self) -> None:

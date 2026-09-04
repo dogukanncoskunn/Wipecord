@@ -41,6 +41,7 @@ from .widgets import (
     LogConsole,
     SecretEntry,
     TokenHelpDialog,
+    bring_to_front,
     button,
     entry,
     field_label,
@@ -72,9 +73,8 @@ class WipecordApp(ctk.CTk):
         ctk.set_appearance_mode("dark")
 
         self.title(t("app.title"))
-        self.geometry("1120x740")
-        self.minsize(940, 620)
         self.configure(fg_color=theme.BG_MAIN)
+        self._fit_to_screen()
         try:
             if ICON_PATH.exists():
                 self.iconbitmap(str(ICON_PATH))
@@ -99,6 +99,38 @@ class WipecordApp(ctk.CTk):
         self.after(100, self._drain)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
+    def _fit_to_screen(self) -> None:
+        """Size and centre the window so it always fits on screen.
+
+        CustomTkinter multiplies the geometry by the display's scaling factor
+        (1.25 on a typical 125%-DPI Windows setup), so a fixed "1120x740"
+        becomes 1400x925 actual pixels — taller than a 1536x864 screen, which
+        pushes the action buttons off the bottom edge. Everything here is
+        computed in logical units (what geometry() expects); the clamp uses the
+        real screen size divided back by the scaling factor.
+        """
+        try:
+            scaling = ctk.ScalingTracker.get_window_scaling(self) or 1.0
+        except Exception:  # pragma: no cover - platform/display dependent
+            scaling = 1.0
+
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        # Leave room for the taskbar and the window's own title bar.
+        avail_w = (screen_w - 80) / scaling
+        avail_h = (screen_h - 110) / scaling
+
+        logical_w = int(min(1120, avail_w))
+        logical_h = int(min(740, avail_h))
+        min_w = int(min(880, logical_w))
+        min_h = int(min(560, logical_h))
+
+        x = max(0, int((screen_w / scaling - logical_w) / 2))
+        y = max(0, int((screen_h / scaling - logical_h) / 2) - 12)
+
+        self.minsize(min_w, min_h)
+        self.geometry(f"{logical_w}x{logical_h}+{x}+{y}")
+
     # --- translation registry ------------------------------------------------
 
     def _tr(self, widget, key: str, *, upper: bool = False, attr: str = "text"):
@@ -113,6 +145,11 @@ class WipecordApp(ctk.CTk):
         self._mode_selector.set(t(MODE_KEYS[self._mode]))
         self._pace_hint.configure(text=t("hint.pace", floor=config.DELAY_FLOOR))
         self._dates_hint.configure(text=t("hint.dates"))
+        # The pause button label is dynamic (Pause/Resume), so it is not in the
+        # _tr registry and has to be refreshed here explicitly.
+        self._pause_button.configure(
+            text=t("btn.resume") if self.engine.paused else t("btn.pause")
+        )
         self.title(t("app.title"))
         self._set_state_label(self._current_state_key)
 
@@ -826,4 +863,7 @@ def launch() -> None:
         app.destroy()
         return
     app.deiconify()
+    # Launched from a shortcut the main window otherwise opens behind whatever
+    # had focus, which reads as "Continue did nothing". Pull it to the front.
+    bring_to_front(app)
     app.mainloop()

@@ -357,6 +357,28 @@ def test_switching_back_restores_english(app):
     assert app._find_button.cget("text") == t("btn.find")
 
 
+def test_the_dynamic_pause_button_also_retranslates(app):
+    english = app._pause_button.cget("text")
+    app._on_language("Türkçe")
+    assert app._pause_button.cget("text") == t("btn.pause")
+    assert app._pause_button.cget("text") != english
+
+
+def test_the_window_fits_within_the_screen(app):
+    # The action buttons must never be pushed off the bottom edge by CTk's
+    # display scaling — that made the app unusable. The invariant: the window's
+    # actual pixel height (logical height x scaling) fits the screen.
+    import re
+
+    match = re.match(r"(\d+)x(\d+)", app.geometry())
+    logical_h = int(match.group(2))
+    try:
+        scaling = ctk.ScalingTracker.get_window_scaling(app) or 1.0
+    except Exception:
+        scaling = 1.0
+    assert logical_h * scaling <= app.winfo_screenheight()
+
+
 # --- mode panels -------------------------------------------------------------
 
 
