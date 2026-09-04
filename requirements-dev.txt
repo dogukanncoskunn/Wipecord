@@ -1,2 +1,6 @@
 -r requirements.txt
 pytest>=8.0.0
+
+# Pre-publication gate: `python -m pip_audit` must be clean before the repo
+# goes public. See the checklist in SECURITY.md.
+pip-audit>=2.7.0
