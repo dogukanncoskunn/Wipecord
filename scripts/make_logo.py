@@ -26,9 +26,13 @@ ASSETS = ROOT / "assets"
 SOURCE = ASSETS / "source"
 
 ICO_SIZES = [16, 24, 32, 48, 64, 128, 256]
-# The mark is cropped to ~88% of the icon so it fills the canvas like a normal
-# app icon rather than sitting small inside a tile.
-ICON_FILL = 0.88
+# The mark fills ~95% of the icon so it reads as large as neighbouring app
+# icons in the taskbar rather than sitting small with padding.
+ICON_FILL = 0.95
+# Columns/rows carrying less than this share of the peak coverage are treated as
+# stray shards and trimmed, so the crop (and thus the centring) is driven by the
+# solid bubble, not by specks flung far to the left.
+ICON_DENSITY = 0.06
 # Luminance keying for the wordmark: pixels darker than LO become fully
 # transparent, brighter than HI stay opaque, with a smooth ramp between so the
 # black background dissolves into the sidebar without hard edges.
@@ -56,15 +60,40 @@ def build_icon() -> None:
 
     rgba = src.convert("RGBA")
     rgba.putalpha(alpha)
-    bbox = alpha.point(lambda p: 255 if p > 24 else 0).getbbox()
-    if bbox:
-        rgba = rgba.crop(bbox)
+    rgba = rgba.crop(_dense_bbox(alpha))
 
     w, h = rgba.size
     side = int(max(w, h) / ICON_FILL)
     canvas = Image.new("RGBA", (side, side), (0, 0, 0, 0))
     canvas.alpha_composite(rgba, ((side - w) // 2, (side - h) // 2))
     canvas.save(ASSETS / "wipecord.ico", format="ICO", sizes=[(n, n) for n in ICO_SIZES])
+
+
+def _dense_bbox(alpha: Image.Image, scale: int = 4):
+    """Bounding box of the solid mark, ignoring sparse stray shards.
+
+    A plain getbbox() would include specks flung far from the bubble, pushing
+    its centre off and shrinking it. This keeps only the columns and rows whose
+    coverage clears ICON_DENSITY of the peak, so the box hugs the bubble itself.
+    """
+    small = alpha.resize((max(1, alpha.width // scale), max(1, alpha.height // scale)))
+    w, h = small.size
+    data = small.tobytes()
+    cols = [0] * w
+    rows = [0] * h
+    for y in range(h):
+        base = y * w
+        for x in range(w):
+            v = data[base + x]
+            cols[x] += v
+            rows[y] += v
+    col_min = max(cols) * ICON_DENSITY
+    row_min = max(rows) * ICON_DENSITY
+    xs = [x for x in range(w) if cols[x] > col_min]
+    ys = [y for y in range(h) if rows[y] > row_min]
+    if not xs or not ys:
+        return alpha.getbbox()
+    return (min(xs) * scale, min(ys) * scale, (max(xs) + 1) * scale, (max(ys) + 1) * scale)
 
 
 def build_wordmark() -> None:
