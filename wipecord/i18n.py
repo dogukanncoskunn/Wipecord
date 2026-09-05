@@ -14,7 +14,6 @@ LANGUAGE_NAMES = {"en": "English", "tr": "Türkçe"}
 STRINGS: dict[str, dict[str, str]] = {
     "en": {
         "app.title": "Wipecord",
-        "app.subtitle": "Delete your own Discord messages, locally",
         # Disclaimer
         "tos.title": "Read this before you start",
         "tos.body": (
@@ -137,7 +136,6 @@ STRINGS: dict[str, dict[str, str]] = {
     },
     "tr": {
         "app.title": "Wipecord",
-        "app.subtitle": "Kendi Discord mesajlarınızı yerel olarak silin",
         # Uyarı
         "tos.title": "Başlamadan önce okuyun",
         "tos.body": (

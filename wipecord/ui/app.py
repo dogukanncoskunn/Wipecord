@@ -218,18 +218,8 @@ class WipecordApp(ctk.CTk):
         language.grid(row=0, column=1, sticky="e")
         row += 1
 
-        self._tr(
-            ctk.CTkLabel(
-                parent,
-                text="",
-                font=(theme.FONT_FAMILY, 11),
-                text_color=theme.TEXT_MUTED,
-                anchor="w",
-                wraplength=340,
-                justify="left",
-            ),
-            "app.subtitle",
-        ).grid(row=row, column=0, pady=(0, 14), **pad)
+        # A little breathing room under the logo where the tagline used to be.
+        ctk.CTkFrame(parent, fg_color="transparent", height=8).grid(row=row, column=0)
         row += 1
 
         # --- account ---------------------------------------------------------
