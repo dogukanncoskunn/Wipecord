@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import queue
+import sys
 import threading
 from dataclasses import dataclass
 from datetime import datetime
@@ -49,7 +50,18 @@ from .widgets import (
     section_label,
 )
 
-_ASSETS = Path(__file__).resolve().parent.parent.parent / "assets"
+def _asset_base() -> Path:
+    """Where the bundled assets live, whether run from source or a PyInstaller exe.
+
+    A frozen build unpacks its data files under sys._MEIPASS; from source they
+    sit in the repo's assets/ directory next to the package.
+    """
+    if getattr(sys, "frozen", False):
+        return Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent)) / "assets"
+    return Path(__file__).resolve().parent.parent.parent / "assets"
+
+
+_ASSETS = _asset_base()
 ICON_PATH = _ASSETS / "wipecord.ico"
 WORDMARK_PATH = _ASSETS / "wordmark.png"
 

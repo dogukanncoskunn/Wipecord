@@ -17,3 +17,8 @@ exports/
 Thumbs.db
 .idea/
 .vscode/
+
+# PyInstaller build output
+/build/
+/dist/
+*.spec
