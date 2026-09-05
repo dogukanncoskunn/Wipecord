@@ -42,7 +42,8 @@ do {
     Write-Host "  status: $status"
 } while ($status -ne "completed")
 
-$report | ConvertTo-Json -Depth 12 | Out-File -FilePath $out -Encoding utf8
+$json = $report | ConvertTo-Json -Depth 12
+[System.IO.File]::WriteAllText($out, $json, (New-Object System.Text.UTF8Encoding $false))
 $stats = $report.data.attributes.stats
 Write-Host ""
 Write-Host "=== VirusTotal summary ==="

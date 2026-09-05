@@ -115,30 +115,49 @@ Built with PyInstaller 6.22.2
 > The hash changes every rebuild (embedded timestamps), so it is meaningful only
 > for one specific binary. Verify the hash of the exact file you distribute.
 
-### VirusTotal
+### VirusTotal — results (2026-09-05)
 
-VirusTotal results cannot be generated from inside this repo automatically —
-submitting requires an API key, and uploading the binary makes it **public** on
-VirusTotal (acceptable for an open-source tool, but a deliberate choice). Run it
-yourself with a free API key:
+The build above was submitted to VirusTotal. Full report:
+`security/virustotal-result.json`.
+
+**4 of 75 engines flagged it; 71 clean.**
+
+| Engine | Verdict | Label |
+|---|---|---|
+| Microsoft | malicious | `Trojan:Win32/Wacatac.B!ml` |
+| APEX | malicious | `Malicious` |
+| Bkav Pro | malicious | `W32.Malware.D42B3850` |
+| Zillya | malicious | `Dropper.Agent.Win32.746397` |
+
+Every one of these is a **generic, heuristic/ML verdict, not a signature match**
+— the `!ml` suffix on Microsoft's is literally "machine-learning guess", and
+`Wacatac`/`Dropper.Agent`/`Malicious` are the catch-all labels these engines
+apply to almost any unsigned, self-extracting executable. This is the expected
+PyInstaller false-positive pattern (see below), not a detection of anything in
+the code: the full source is in this repo and the exe is reproducible from it.
+
+Public page:
+`https://www.virustotal.com/gui/file/ff1cfc049839cc96bf5f4f8786cfc5cda3727a273fbc3c61feb73dd41b700fc9`
+
+To re-run on a new build (needs a free API key; uploading makes the binary
+**public** on VirusTotal):
 
 ```powershell
 $env:VT_API_KEY = "<your virustotal api key>"
 powershell -ExecutionPolicy Bypass -File scripts\virustotal-scan.ps1
 ```
 
-It uploads `dist\Wipecord.exe`, waits for the analysis, and writes
-`security\virustotal-result.json` (plus a one-line summary) into this folder, so
-the result lives in the repo alongside this audit.
-
 **Expect possible false positives.** PyInstaller one-file executables are
 routinely flagged by a handful of heuristic engines because the bootloader
 self-extracts to a temp directory — the same pattern packers use. This is a
 known trait of *all* PyInstaller binaries, not a sign of malware here: the full
 source is in this repo and the exe is reproducible from it with
-`scripts\build-exe.ps1`. If the flag count is problematic for distribution,
-options are a one-folder build (`--onedir`, less heuristic pressure) or signing
-the binary with a code-signing certificate.
+`scripts\build-exe.ps1`. Microsoft Defender is one of the four, so users may see
+a SmartScreen or Defender prompt on first run. If the flag count is problematic
+for distribution, the options are: submit the binary to Microsoft as a false
+positive (https://www.microsoft.com/wdsi/filesubmission — usually cleared within
+a day or two), ship a one-folder build (`--onedir`, less heuristic pressure), or
+sign the binary with a code-signing certificate (the real fix, but paid).
 
 ---
 
