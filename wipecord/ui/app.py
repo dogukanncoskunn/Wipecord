@@ -49,7 +49,9 @@ from .widgets import (
     section_label,
 )
 
-ICON_PATH = Path(__file__).resolve().parent.parent.parent / "assets" / "wipecord.ico"
+_ASSETS = Path(__file__).resolve().parent.parent.parent / "assets"
+ICON_PATH = _ASSETS / "wipecord.ico"
+WORDMARK_PATH = _ASSETS / "wordmark.png"
 
 MODES = (Mode.ALL, Mode.LAST_N, Mode.DATE_RANGE)
 MODE_KEYS = {Mode.ALL: "mode.all", Mode.LAST_N: "mode.last_n", Mode.DATE_RANGE: "mode.date_range"}
@@ -187,13 +189,7 @@ class WipecordApp(ctk.CTk):
         header = ctk.CTkFrame(parent, fg_color="transparent")
         header.grid(row=row, column=0, pady=(18, 2), **pad)
         header.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(
-            header,
-            text="Wipecord",
-            font=(theme.FONT_FAMILY, 20, "bold"),
-            text_color=theme.TEXT_HEADING,
-            anchor="w",
-        ).grid(row=0, column=0, sticky="w")
+        self._build_wordmark(header)
         language = ctk.CTkOptionMenu(
             header,
             values=list(LANGUAGE_NAMES.values()),
@@ -386,6 +382,35 @@ class WipecordApp(ctk.CTk):
         row += 1
 
         self._on_mode(t(MODE_KEYS[Mode.ALL]))
+
+    def _build_wordmark(self, header) -> None:
+        """The header lockup: the logo mark plus the 'Wipecord' wordmark.
+
+        Rendered from a pre-baked, antialiased PNG rather than drawn on a canvas
+        (Tk has no antialiasing, so vector corners would look ragged). Falls back
+        to plain text if the image or Pillow is unavailable, so the app still
+        runs without the asset.
+        """
+        try:
+            from PIL import Image
+
+            image = Image.open(WORDMARK_PATH)
+            height = 64
+            width = int(height * image.width / image.height)
+            self._wordmark_image = ctk.CTkImage(
+                light_image=image, dark_image=image, size=(width, height)
+            )
+            ctk.CTkLabel(header, image=self._wordmark_image, text="").grid(
+                row=0, column=0, sticky="w"
+            )
+        except Exception:  # pragma: no cover - asset/Pillow missing
+            ctk.CTkLabel(
+                header,
+                text="Wipecord",
+                font=(theme.FONT_FAMILY, 20, "bold"),
+                text_color=theme.TEXT_HEADING,
+                anchor="w",
+            ).grid(row=0, column=0, sticky="w")
 
     def _build_main(self, parent) -> None:
         bar = ctk.CTkFrame(parent, fg_color="transparent")

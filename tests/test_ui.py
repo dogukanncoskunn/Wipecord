@@ -435,3 +435,18 @@ def test_the_token_help_dialog_builds_and_closes(app):
 def test_the_help_link_retranslates_with_the_interface(app):
     app._on_language("Türkçe")
     assert app._token_help.cget("text") == t("help.token.link")
+
+
+# --- branding ----------------------------------------------------------------
+
+
+def test_the_logo_assets_exist():
+    from wipecord.ui.app import ICON_PATH, WORDMARK_PATH
+
+    assert ICON_PATH.exists(), "the window/taskbar icon is missing"
+    assert WORDMARK_PATH.exists(), "the header wordmark image is missing"
+
+
+def test_the_header_renders_the_wordmark_logo(app):
+    # The baked, antialiased logo should load rather than the text fallback.
+    assert getattr(app, "_wordmark_image", None) is not None
