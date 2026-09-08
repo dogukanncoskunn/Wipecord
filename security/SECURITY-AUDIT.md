@@ -123,32 +123,35 @@ Size:   23,132,745 bytes
 > The hash changes every rebuild (embedded timestamps), so it is meaningful only
 > for one specific binary. Verify the hash of the exact file you distribute.
 
-### VirusTotal — results (2026-09-05)
+### VirusTotal — results (2026-09-08, the v0.1.0 release binary)
 
-The **superseded** build above was submitted to VirusTotal. Full report:
-`security/virustotal-result.json`. The v0.1.0 release binary is a rebuild of the
-same source plus the fixes in this release, so the same generic-false-positive
-pattern is expected; re-run `scripts\virustotal-scan.ps1` against the release
-binary to record its own report.
+The **release** binary above was submitted to VirusTotal. Full report:
+`security/virustotal-result.json`.
 
-**4 of 75 engines flagged it; 71 clean.**
+**5 of 75 engines flagged it. 63 clean; 7 returned no verdict** (1 timeout,
+1 failure, 5 could not handle the file type).
 
-| Engine | Verdict | Label |
-|---|---|---|
-| Microsoft | malicious | `Trojan:Win32/Wacatac.B!ml` |
-| APEX | malicious | `Malicious` |
-| Bkav Pro | malicious | `W32.Malware.D42B3850` |
-| Zillya | malicious | `Dropper.Agent.Win32.746397` |
+| Engine | Verdict | Label | Kind |
+|---|---|---|---|
+| Microsoft | malicious | `Trojan:Win32/Wacatac.B!ml` | ML (`!ml` = machine-learning guess) |
+| Cylance | malicious | `Unsafe` | ML-only engine; `Unsafe` is its sole malicious verdict |
+| APEX | malicious | `Malicious` | generic heuristic |
+| Bkav | malicious | `W32.Malware.CCD6F19A` | generic, hash-derived label |
+| Zillya | malicious | `Dropper.Agent.Win32.746397` | generic |
 
-Every one of these is a **generic, heuristic/ML verdict, not a signature match**
-— the `!ml` suffix on Microsoft's is literally "machine-learning guess", and
-`Wacatac`/`Dropper.Agent`/`Malicious` are the catch-all labels these engines
-apply to almost any unsigned, self-extracting executable. This is the expected
-PyInstaller false-positive pattern (see below), not a detection of anything in
-the code: the full source is in this repo and the exe is reproducible from it.
+**Not one of these is a signature match.** Every label is a catch-all these
+engines apply to almost any unsigned, self-extracting executable — which is
+exactly what a PyInstaller one-file build is. No engine names a behaviour, a
+family with actual analysis behind it, or anything present in this source.
+
+For comparison, the superseded 2026-09-05 build scored 4/75 on the same engine
+set; Cylance is the addition. The difference is engine drift on unsigned
+binaries, not a change in what the code does — the diff between the two builds
+is the fixes listed under *Second pass* below, all of which are in this
+repository.
 
 Public page:
-`https://www.virustotal.com/gui/file/ff1cfc049839cc96bf5f4f8786cfc5cda3727a273fbc3c61feb73dd41b700fc9`
+`https://www.virustotal.com/gui/file/6b09429bc388128c234b6168d9827eef57df912385029a6ba5035e5a96c23f48`
 
 To re-run on a new build (needs a free API key; uploading makes the binary
 **public** on VirusTotal):

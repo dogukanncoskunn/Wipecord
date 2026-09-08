@@ -46,7 +46,7 @@ Get-FileHash .\Wipecord.exe -Algorithm SHA256
 
 Compare that against the `SHA256` published on the release page. If it does not match, do not run it.
 
-> **Windows will probably warn you about this file.** It is an unsigned PyInstaller executable, and a handful of antivirus engines flag *every* PyInstaller build as suspicious because the bootloader unpacks itself to a temp directory — the same thing packers do. The build was submitted to VirusTotal: **4 of 75 engines flagged it, all generic machine-learning verdicts, 71 clean.** The full report and reasoning are in [`security/SECURITY-AUDIT.md`](security/SECURITY-AUDIT.md), and the exe is reproducible from this source with `scripts\build-exe.ps1`. If you would rather not trust a binary at all, run from source below — that is the honest recommendation.
+> **Windows will probably warn you about this file.** It is an unsigned PyInstaller executable, and a handful of antivirus engines flag *every* PyInstaller build as suspicious because the bootloader unpacks itself to a temp directory — the same thing packers do. The build was submitted to VirusTotal: **5 of 75 engines flagged it, 63 clean.** Every one of the five is a generic machine-learning or heuristic verdict — not one is a signature match. The full report and reasoning are in [`security/SECURITY-AUDIT.md`](security/SECURITY-AUDIT.md), and the exe is reproducible from this source with `scripts\build-exe.ps1`. If you would rather not trust a binary at all, run from source below — that is the honest recommendation.
 
 To dismiss the SmartScreen prompt: **More info → Run anyway**.
 
@@ -179,7 +179,7 @@ Get-FileHash .\Wipecord.exe -Algorithm SHA256
 
 Çıkan değeri sürüm sayfasındaki `SHA256` ile karşılaştırın. Tutmuyorsa çalıştırmayın.
 
-> **Windows bu dosya için büyük ihtimalle uyarı verecek.** İmzasız bir PyInstaller çalıştırılabiliridir ve birkaç antivirüs motoru *bütün* PyInstaller derlemelerini şüpheli işaretler; çünkü bootloader kendini geçici bir klasöre açar — packer'ların yaptığı şeyin aynısı. Derleme VirusTotal'a gönderildi: **75 motordan 4'ü işaretledi, hepsi genel makine-öğrenmesi tahmini, 71'i temiz.** Tam rapor ve gerekçe [`security/SECURITY-AUDIT.md`](security/SECURITY-AUDIT.md) içinde; exe bu kaynaktan `scripts\build-exe.ps1` ile yeniden üretilebilir. Bir ikiliye hiç güvenmek istemiyorsanız aşağıdan kaynaktan çalıştırın — dürüst tavsiye budur.
+> **Windows bu dosya için büyük ihtimalle uyarı verecek.** İmzasız bir PyInstaller çalıştırılabiliridir ve birkaç antivirüs motoru *bütün* PyInstaller derlemelerini şüpheli işaretler; çünkü bootloader kendini geçici bir klasöre açar — packer'ların yaptığı şeyin aynısı. Derleme VirusTotal'a gönderildi: **75 motordan 5'i işaretledi, 63'ü temiz.** Beşinin de sonucu genel makine-öğrenmesi veya sezgisel tahmin — hiçbiri imza eşleşmesi değil. Tam rapor ve gerekçe [`security/SECURITY-AUDIT.md`](security/SECURITY-AUDIT.md) içinde; exe bu kaynaktan `scripts\build-exe.ps1` ile yeniden üretilebilir. Bir ikiliye hiç güvenmek istemiyorsanız aşağıdan kaynaktan çalıştırın — dürüst tavsiye budur.
 
 SmartScreen uyarısını geçmek için: **Ek bilgi → Yine de çalıştır**.
 
