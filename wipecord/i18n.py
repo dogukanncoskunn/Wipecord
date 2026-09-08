@@ -132,6 +132,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "summary.stopped": "Stopped early. Deleted {deleted} before stopping.",
         "log.saved": "Log written to {path}",
         "log.exported": "Preview written to {path}",
+        "log.write_failed": "Could not write the file: {error}",
         "log.preview_stale": "Settings changed — run the preview again before deleting.",
     },
     "tr": {
@@ -255,6 +256,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "summary.stopped": "Erken durduruldu. Durmadan önce {deleted} mesaj silindi.",
         "log.saved": "Log şuraya yazıldı: {path}",
         "log.exported": "Önizleme şuraya yazıldı: {path}",
+        "log.write_failed": "Dosya yazılamadı: {error}",
         "log.preview_stale": "Ayarlar değişti — silmeden önce önizlemeyi tekrar çalıştırın.",
     },
 }

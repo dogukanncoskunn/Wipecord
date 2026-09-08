@@ -11,7 +11,7 @@ API_BASE = "https://discord.com/api/v10"
 # An honest User-Agent. Wipecord deliberately does NOT impersonate the official
 # Discord client: identifying ourselves is the difference between "a rate-limit
 # respecting personal tool" and "an evasion tool".
-USER_AGENT = "Wipecord/0.1 (+https://github.com/DogukanCoskun/Wipecord)"
+USER_AGENT = "Wipecord/0.1 (+https://github.com/dogukanncoskunn/Wipecord)"
 
 REQUEST_TIMEOUT = 30.0
 
@@ -69,4 +69,9 @@ SEARCH_PAGE_SIZE = 25
 SEARCH_MAX_OFFSET = 5000
 # Returned with HTTP 202 when the search index is still warming up. Not an error.
 SEARCH_INDEX_NOT_READY = 110
+# A warming index resolves in seconds. Cap both the individual wait and the
+# number of retries so a stuck (or hostile) retry_after cannot park a scan
+# forever with nothing on screen.
+SEARCH_INDEX_MAX_WAIT = 30.0
+SEARCH_INDEX_MAX_ATTEMPTS = 10
 MESSAGES_PAGE_SIZE = 100

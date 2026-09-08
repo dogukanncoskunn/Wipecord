@@ -283,3 +283,88 @@ def test_a_summary_collapses_newlines_and_truncates():
 def test_an_attachment_only_message_still_gets_a_readable_summary():
     assert "attachment" in summarise({"content": "", "attachments": [{}, {}]})
     assert summarise({"content": ""}) == "[no text]"
+
+
+# --- system messages ---------------------------------------------------------
+
+
+def system_message(message_id: str, message_type: int) -> dict:
+    """A call/pin/recipient notice: attributed to us, but not deletable."""
+    msg = message(message_id)
+    msg["type"] = message_type
+    return msg
+
+
+@pytest.mark.parametrize("message_type", [1, 2, 3, 4, 5, 6, 7, 21])
+def test_system_messages_are_never_offered_for_deletion(message_type):
+    client = FakeClient(
+        search_pages=[
+            search_page([message("1"), system_message("2", message_type)], total=2)
+        ]
+    )
+    found, scanner = scan(client)
+    assert [ref.id for ref in found] == ["1"]
+    assert scanner.system_skipped == 1
+
+
+@pytest.mark.parametrize("message_type", [0, 19, 20, 23])
+def test_ordinary_message_types_are_kept(message_type):
+    client = FakeClient(search_pages=[search_page([system_message("1", message_type)], total=1)])
+    found, scanner = scan(client)
+    assert [ref.id for ref in found] == ["1"]
+    assert scanner.system_skipped == 0
+
+
+def test_the_skipped_count_resets_between_scans():
+    client = FakeClient(
+        search_pages=[
+            search_page([system_message("1", 3)], total=1),
+            search_page([message("2")], total=1),
+        ]
+    )
+    scanner = Scanner(client, "ME")
+    list(scanner.scan(GUILD, ScanCriteria()))
+    assert scanner.system_skipped == 1
+    list(scanner.scan(GUILD, ScanCriteria()))
+    assert scanner.system_skipped == 0
+
+
+def test_system_messages_are_filtered_on_the_history_path_too():
+    client = FakeClient(
+        search_pages=[DiscordError(500, "search down")],
+        history_pages=[[message("1"), system_message("2", 3)], []],
+    )
+    found, scanner = scan(client)
+    assert [ref.id for ref in found] == ["1"]
+    assert scanner.system_skipped == 1
+
+
+# --- a search index that never becomes ready ---------------------------------
+
+
+def index_warming(retry_after: float = 1.0) -> ApiResult:
+    return ApiResult(status=202, data={"retry_after": retry_after}, headers={})
+
+
+def test_a_stuck_search_index_gives_up_and_falls_back_to_history():
+    attempts = config.SEARCH_INDEX_MAX_ATTEMPTS + 1
+    client = FakeClient(
+        search_pages=[index_warming() for _ in range(attempts)],
+        history_pages=[[message("1")], []],
+    )
+    found, scanner = scan(client)
+    assert [ref.id for ref in found] == ["1"]
+    assert scanner.used_fallback is True
+    # It stopped asking rather than looping forever.
+    assert len(client.search_calls) == config.SEARCH_INDEX_MAX_ATTEMPTS + 1
+
+
+def test_the_index_wait_is_capped():
+    slept: list[float] = []
+    client = FakeClient(
+        search_pages=[index_warming(retry_after=9999.0), search_page([message("1")], total=1)],
+    )
+    client.limiter.sleep = slept.append
+    found, _ = scan(client)
+    assert [ref.id for ref in found] == ["1"]
+    assert slept == [config.SEARCH_INDEX_MAX_WAIT]

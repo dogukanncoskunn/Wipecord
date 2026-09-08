@@ -27,6 +27,13 @@ from .snowflake import date_range_to_snowflakes
 # Discord channel type ids that are direct messages rather than guild channels.
 DM_CHANNEL_TYPES = {1, 3}
 
+# Message types Discord will actually let you delete. Everything else - call
+# notices, pin notices, "X added Y to the group" - is a system message that is
+# *attributed* to the account but that the API refuses to remove. Listing them
+# inflates the preview count and then fills the log with failures, so they are
+# filtered out during the scan and reported as a single skipped count instead.
+DELETABLE_MESSAGE_TYPES = {0, 19, 20, 23}
+
 
 class Mode(str, Enum):
     ALL = "all"
@@ -113,6 +120,7 @@ class Scanner:
         self._log = log or (lambda level, text: None)
         self.total_hint: int | None = None
         self.used_fallback = False
+        self.system_skipped = 0
 
     # --- channel -------------------------------------------------------------
 
@@ -147,6 +155,9 @@ class Scanner:
     def _accepts(self, message: dict, criteria: ScanCriteria) -> bool:
         if not self._is_mine(message):
             return False
+        if int(message.get("type") or 0) not in DELETABLE_MESSAGE_TYPES:
+            self.system_skipped += 1
+            return False
         if criteria.skip_pinned and message.get("pinned"):
             return False
         return True
@@ -161,6 +172,7 @@ class Scanner:
         """
         self.total_hint = None
         self.used_fallback = False
+        self.system_skipped = 0
         try:
             yield from self._scan_via_search(channel, criteria)
             return
@@ -179,6 +191,7 @@ class Scanner:
         min_id, max_id = criteria.bounds()
         offset = 0
         yielded = 0
+        index_waits = 0
         seen: set[str] = set()
 
         while True:
@@ -194,7 +207,20 @@ class Scanner:
             # 202 means the search index is still warming up. Not an error - it
             # resolves on its own, so wait it out rather than falling back.
             if result.status == 202:
-                retry = float((result.data or {}).get("retry_after") or 2.0)
+                index_waits += 1
+                if index_waits > config.SEARCH_INDEX_MAX_ATTEMPTS:
+                    # Give up on search rather than wait forever. If nothing has
+                    # been yielded yet the caller can still fall back to history
+                    # pagination; if it has, stopping here avoids re-yielding
+                    # everything the fallback would find again.
+                    if yielded == 0:
+                        raise DiscordError(202, "Search index did not become ready")
+                    self._log("warn", "Search index still not ready; stopping with what was found.")
+                    return
+                retry = min(
+                    config.SEARCH_INDEX_MAX_WAIT,
+                    float((result.data or {}).get("retry_after") or 2.0),
+                )
                 self._log("wait", f"Discord is building the search index; retrying in {retry:.0f}s.")
                 self._client.limiter.sleep(retry)
                 continue

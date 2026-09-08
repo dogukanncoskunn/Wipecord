@@ -112,19 +112,23 @@ def run_headless(args) -> int:
 
     if args.json_out and preview is not None:
         path = Path(args.json_out)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            json.dumps(
-                {
-                    "channel": preview.channel_label,
-                    "generated_at": datetime.now().astimezone().isoformat(),
-                    "messages": [ref.__dict__ for ref in preview.messages],
-                },
-                indent=2,
-                ensure_ascii=False,
-            ),
-            encoding="utf-8",
-        )
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                json.dumps(
+                    {
+                        "channel": preview.channel_label,
+                        "generated_at": datetime.now().astimezone().isoformat(),
+                        "messages": [ref.__dict__ for ref in preview.messages],
+                    },
+                    indent=2,
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            print(f"\nCould not write {path}: {exc}", file=sys.stderr)
+            return 1
         print(f"\nWrote {len(preview.messages)} entries to {path}")
 
     if summary is not None:

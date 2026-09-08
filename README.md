@@ -34,12 +34,28 @@ Wipecord does the same job locally. Your token never leaves your machine, never 
 - Live colour-coded log, progress bar and ETA.
 - English and Turkish interface.
 
-## Install
+## Download (Windows)
+
+Grab **`Wipecord.exe`** from the [latest release](https://github.com/dogukanncoskunn/Wipecord/releases/latest). It is a single file — no installer, no Python, nothing written outside the folder you put it in.
+
+Verify what you downloaded before running it:
+
+```powershell
+Get-FileHash .\Wipecord.exe -Algorithm SHA256
+```
+
+Compare that against the `SHA256` published on the release page. If it does not match, do not run it.
+
+> **Windows will probably warn you about this file.** It is an unsigned PyInstaller executable, and a handful of antivirus engines flag *every* PyInstaller build as suspicious because the bootloader unpacks itself to a temp directory — the same thing packers do. The build was submitted to VirusTotal: **4 of 75 engines flagged it, all generic machine-learning verdicts, 71 clean.** The full report and reasoning are in [`security/SECURITY-AUDIT.md`](security/SECURITY-AUDIT.md), and the exe is reproducible from this source with `scripts\build-exe.ps1`. If you would rather not trust a binary at all, run from source below — that is the honest recommendation.
+
+To dismiss the SmartScreen prompt: **More info → Run anyway**.
+
+## Install from source
 
 Requires Python 3.10+ (developed on 3.11).
 
 ```bash
-git clone https://github.com/DogukanCoskun/Wipecord.git
+git clone https://github.com/dogukanncoskunn/Wipecord.git
 cd Wipecord
 python -m venv .venv
 .venv\Scripts\activate          # Windows
@@ -113,7 +129,7 @@ pip install -r requirements-dev.txt
 python -m pytest
 ```
 
-134 tests, no network access in any of them. The layering is `ui/ → engine → scanner → client → ratelimit`; nothing below `ui/` imports tkinter, which is what makes the whole pipeline testable headlessly.
+166 tests, no network access in any of them. The layering is `ui/ → engine → scanner → client → ratelimit`; nothing below `ui/` imports tkinter, which is what makes the whole pipeline testable headlessly.
 
 ## Licence
 
@@ -151,12 +167,28 @@ Wipecord aynı işi yerelde yapar. Token'ınız makineden çıkmaz, diske yazıl
 - Canlı renkli log, ilerleme çubuğu ve tahmini süre.
 - Türkçe ve İngilizce arayüz.
 
-## Kurulum
+## İndir (Windows)
+
+**`Wipecord.exe`** dosyasını [son sürümden](https://github.com/dogukanncoskunn/Wipecord/releases/latest) indirin. Tek dosyadır — kurulum yok, Python gerekmez, koyduğunuz klasörün dışına hiçbir şey yazmaz.
+
+Çalıştırmadan önce indirdiğiniz dosyayı doğrulayın:
+
+```powershell
+Get-FileHash .\Wipecord.exe -Algorithm SHA256
+```
+
+Çıkan değeri sürüm sayfasındaki `SHA256` ile karşılaştırın. Tutmuyorsa çalıştırmayın.
+
+> **Windows bu dosya için büyük ihtimalle uyarı verecek.** İmzasız bir PyInstaller çalıştırılabiliridir ve birkaç antivirüs motoru *bütün* PyInstaller derlemelerini şüpheli işaretler; çünkü bootloader kendini geçici bir klasöre açar — packer'ların yaptığı şeyin aynısı. Derleme VirusTotal'a gönderildi: **75 motordan 4'ü işaretledi, hepsi genel makine-öğrenmesi tahmini, 71'i temiz.** Tam rapor ve gerekçe [`security/SECURITY-AUDIT.md`](security/SECURITY-AUDIT.md) içinde; exe bu kaynaktan `scripts\build-exe.ps1` ile yeniden üretilebilir. Bir ikiliye hiç güvenmek istemiyorsanız aşağıdan kaynaktan çalıştırın — dürüst tavsiye budur.
+
+SmartScreen uyarısını geçmek için: **Ek bilgi → Yine de çalıştır**.
+
+## Kaynaktan kurulum
 
 Python 3.10+ gerekir (3.11 ile geliştirildi).
 
 ```bash
-git clone https://github.com/DogukanCoskun/Wipecord.git
+git clone https://github.com/dogukanncoskunn/Wipecord.git
 cd Wipecord
 python -m venv .venv
 .venv\Scripts\activate
@@ -227,7 +259,7 @@ pip install -r requirements-dev.txt
 python -m pytest
 ```
 
-134 test, hiçbirinde ağ erişimi yok. Katmanlama `ui/ → engine → scanner → client → ratelimit`; `ui/` altındaki hiçbir şey tkinter import etmez, bütün akışın arayüzsüz test edilebilmesini sağlayan da budur.
+166 test, hiçbirinde ağ erişimi yok. Katmanlama `ui/ → engine → scanner → client → ratelimit`; `ui/` altındaki hiçbir şey tkinter import etmez, bütün akışın arayüzsüz test edilebilmesini sağlayan da budur.
 
 ## Lisans
 

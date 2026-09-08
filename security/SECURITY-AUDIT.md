@@ -1,7 +1,8 @@
 # Wipecord — Security Audit
 
-**Date:** 2026-09-05 · **Scope:** the whole repository, its full git history, the
-runtime token handling, dependencies, and the packaged binary.
+**Date:** 2026-09-05, re-reviewed 2026-09-08 before publication · **Scope:** the
+whole repository, its full git history, the runtime token handling,
+dependencies, and the packaged binary.
 
 This audit answers two questions directly, then documents the wider checks.
 
@@ -86,7 +87,7 @@ Re-run: `python -m pip_audit`.
 
 ## Tests
 
-150 tests pass. **None of them touch the network** — the HTTP client is
+166 tests pass. **None of them touch the network** — the HTTP client is
 exercised through a fake session, so the suite cannot leak or transmit anything.
 Tests specifically covering token safety:
 
@@ -104,12 +105,19 @@ icon embedded). It is **not committed** — it is a build artifact; the official
 binary is published as a GitHub Release, and each release's hash should be
 recorded with it.
 
-Reference build hash (produced locally from this commit):
+Release build — **v0.1.0**, the binary published on the release page:
+
+```
+SHA256: 6b09429bc388128c234b6168d9827eef57df912385029a6ba5035e5a96c23f48
+Size:   23,135,544 bytes
+Built with PyInstaller 6.22.2
+```
+
+Superseded build (2026-09-05, pre-release audit, not distributed):
 
 ```
 SHA256: ff1cfc049839cc96bf5f4f8786cfc5cda3727a273fbc3c61feb73dd41b700fc9
 Size:   23,132,745 bytes
-Built with PyInstaller 6.22.2
 ```
 
 > The hash changes every rebuild (embedded timestamps), so it is meaningful only
@@ -117,8 +125,11 @@ Built with PyInstaller 6.22.2
 
 ### VirusTotal — results (2026-09-05)
 
-The build above was submitted to VirusTotal. Full report:
-`security/virustotal-result.json`.
+The **superseded** build above was submitted to VirusTotal. Full report:
+`security/virustotal-result.json`. The v0.1.0 release binary is a rebuild of the
+same source plus the fixes in this release, so the same generic-false-positive
+pattern is expected; re-run `scripts\virustotal-scan.ps1` against the release
+binary to record its own report.
 
 **4 of 75 engines flagged it; 71 clean.**
 
@@ -158,6 +169,27 @@ for distribution, the options are: submit the binary to Microsoft as a false
 positive (https://www.microsoft.com/wdsi/filesubmission — usually cleared within
 a day or two), ship a one-folder build (`--onedir`, less heuristic pressure), or
 sign the binary with a code-signing certificate (the real fix, but paid).
+
+---
+
+## Second pass — pre-publication review (2026-09-08)
+
+A full re-read of the source before the repository went public. **No new
+token-handling or egress defect was found**; the findings were correctness and
+robustness issues, all fixed in this release:
+
+| Finding | Severity | Fix |
+|---|---|---|
+| `USER_AGENT` pointed at a GitHub URL that 404s, as did both `git clone` lines in the README | Medium — the "we identify ourselves honestly" position depends on that URL resolving | Corrected to the real repository |
+| System messages (call/pin/recipient notices, types 1–7, 21) passed the author check, entered the preview, then failed on `DELETE` | Low — inflated the preview count and filled the log with red failures | `DELETABLE_MESSAGE_TYPES` whitelist in `Scanner._accepts`, with the skipped count reported once |
+| The HTTP 202 "search index warming" loop had no attempt cap and used the server's `retry_after` unclamped | Low — a stuck index parked a scan indefinitely with no visible progress | Capped at `SEARCH_INDEX_MAX_ATTEMPTS` retries and `SEARCH_INDEX_MAX_WAIT` seconds, then falls back to history pagination |
+| Log/preview writes called `write_text` unguarded; under `pythonw` there is no console, so a failed write was silent | Low — the button appeared to do nothing | `OSError` caught and surfaced in the log (`log.write_failed`, EN + TR) |
+| Lookup/verify threads used a `Sleeper` whose stop event was never set | Informational | Wired to a UI-lifetime event set on window close |
+| No CI | Informational | `.github/workflows/ci.yml` — pytest on Windows × Python 3.10/3.11/3.12, plus `pip-audit --strict` |
+
+Re-verified in the same pass: 166 tests green and network-free; `pip-audit`
+clean; no secret anywhere in the tracked tree; EN/TR string tables at full
+parity (80/80 keys); egress still `discord.com` only.
 
 ---
 

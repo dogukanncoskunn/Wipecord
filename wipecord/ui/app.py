@@ -98,6 +98,10 @@ class WipecordApp(ctk.CTk):
         self.events: queue.Queue = queue.Queue()
         self.engine = DeletionEngine(self.events)
         self.redactor = Redactor()
+        # Shared by the short-lived lookup clients: closing the window releases a
+        # background thread parked on a rate-limit wait instead of leaving it to
+        # run out the full retry_after.
+        self._ui_stop = threading.Event()
 
         self._translatables: list[tuple] = []
         self._mode = Mode.ALL
@@ -601,7 +605,7 @@ class WipecordApp(ctk.CTk):
     def _throwaway_client(self, token: str) -> DiscordClient:
         """A short-lived client for one lookup, paced like any other request."""
         self.redactor.add(token)
-        limiter = RateLimiter(sleeper=Sleeper(threading.Event()))
+        limiter = RateLimiter(sleeper=Sleeper(self._ui_stop))
         return DiscordClient(token, limiter, redactor=self.redactor)
 
     def _show_token_help(self) -> None:
@@ -851,7 +855,13 @@ class WipecordApp(ctk.CTk):
         if not path:
             return
         # Redacted again on the way out: a saved file outlives the session.
-        Path(path).write_text(self.redactor(self.log.text()), encoding="utf-8")
+        try:
+            Path(path).write_text(self.redactor(self.log.text()), encoding="utf-8")
+        except OSError as exc:
+            # Under pythonw there is no console, so an unhandled write error
+            # would look like the button simply doing nothing.
+            self.log.append("error", t("log.write_failed", error=str(exc)))
+            return
         self.log.append("info", t("log.saved", path=path))
 
     def _export_preview(self) -> None:
@@ -869,12 +879,17 @@ class WipecordApp(ctk.CTk):
             "generated_at": datetime.now().astimezone().isoformat(),
             "messages": [ref.__dict__ for ref in self._preview],
         }
-        Path(path).write_text(
-            json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
-        )
+        try:
+            Path(path).write_text(
+                json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        except OSError as exc:
+            self.log.append("error", t("log.write_failed", error=str(exc)))
+            return
         self.log.append("info", t("log.exported", path=path))
 
     def _on_close(self) -> None:
+        self._ui_stop.set()
         if self.engine.busy:
             self.engine.stop()
             self.engine.join(3)

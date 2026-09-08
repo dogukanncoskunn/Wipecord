@@ -199,6 +199,12 @@ class DeletionEngine:
                 self._emit(ProgressEvent(done=len(found), total=scanner.total_hint or 0))
                 self._log(Level.INFO, f"Found {len(found)} so far…")
         self._emit(ProgressEvent(done=len(found), total=len(found)))
+        if scanner.system_skipped:
+            self._log(
+                Level.INFO,
+                f"Skipped {scanner.system_skipped} system message(s) "
+                "(call and pin notices cannot be deleted).",
+            )
         return found
 
     def _delete(
